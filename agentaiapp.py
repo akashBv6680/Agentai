@@ -1,22 +1,17 @@
-from openai import OpenAI
+import streamlit as st
+from langchain_openai.chat_models import ChatOpenAI
 
-client = OpenAI(
-  base_url="https://openrouter.ai/api/v1",
-  api_key="<OPENROUTER_API_KEY>",
-)
+st.title("Agent AI App")
+openai_api_key = st.sidebar.text_input("OpenAI API Key", type="password")
 
-completion = client.chat.completions.create(
-  extra_headers={
-    "HTTP-Referer": "<YOUR_SITE_URL>", # Optional. Site URL for rankings on openrouter.ai.
-    "X-Title": "<YOUR_SITE_NAME>", # Optional. Site title for rankings on openrouter.ai.
-  },
-  model="openai/gpt-4o",
-  messages=[
-    {
-      "role": "user",
-      "content": "What is the meaning of life?"
-    }
-  ]
-)
+def generate_response(input_text):
+    model = ChatOpenAI(temperature=0.7, api_key=openai_api_key)
+    st.info(model.invoke(input_text))
 
-print(completion.choices[0].message.content)
+with st.form("my_form"):
+    text = st.text_area("Enter text:", "What can I assist you with today?")
+    submitted = st.form_submit_button("Submit")
+    if not openai_api_key.startswith("sk-"):
+        st.warning("Please enter your OpenAI API key!", icon="")
+    if submitted and openai_api_key.startswith("sk-"):
+        generate_response(text)
